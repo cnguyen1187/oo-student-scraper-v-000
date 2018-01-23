@@ -18,7 +18,6 @@ class Student
     attributes_hash.each do |key, value|
 
       self.instance_variable_set("@#{key}","#{value}")
-      # self.class_eval("def #{key}=(#{value}); @#{key}=#{value}; end")
     end
     self
   end
