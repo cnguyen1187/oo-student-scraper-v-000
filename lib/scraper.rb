@@ -1,7 +1,6 @@
 require 'open-uri'
 require 'pry'
 
-# attr_accessor :linkedin, :github, :blog, :profile_quote, :bio
 
 class Scraper
 
@@ -20,47 +19,30 @@ class Scraper
   	info = {twitter: "",linkedin: "", github: "", blog: "", profile_quote: "", bio: ""}
 
   	url = Nokogiri::HTML(open(profile_url))
-  	#collect all social links
   	links = url.css('.main-wrapper')
   	links.each do |link|
-  		# binding.pry
-  		link.css('.vitals-container').search('a').each do |site|
-  			# binding.pry
-  			info.each do |k, v|
-  				# binding.pry
-  				if site.attribute('href').value.slice(k.to_s).eql?(k.to_s)
+  	link.css('.vitals-container').search('a').each do |site|
+    info.each do |k, v|
+
+          if site.attribute('href').value.slice(k.to_s).eql?(k.to_s)
 	 					info[k] = site.attribute('href').value
 
-	 				elsif k.eql?(:blog) && info.none?{|a,b| site.attribute('href').value.slice(a.to_s).eql?(a.to_s)} && site.attribute('href').value.include?("http://")
-	 				# 	# !info.values.include?(site.attribute('href').value) && !site.attribute('href').value.slice(k.to_s).eql?(k.to_s)
-	 					info[k] = site.attribute('href').value
+	 				elsif k.eql?(:blog) && info.none?{|a,b| site.attribute('href').value.slice(a.to_s).eql?(a.to_s)} && site.attribute('href').value.include?("http://")info[k] = site.attribute('href').value
 	 				end
 	 			end
 	 		end
 
-	 		link.css('.vitals-container').search('[class^="profile"]').each do |klass|
-	 			# binding.pry
-	 			info.each do |k,v|
-	 				# binding.pry
-	 				if info[k].empty? && klass.attribute('class').value.sub(/[-_]/, " ").eql?(k.to_s.sub(/[-_]/, " "))
-	 					# if info[k].empty? && klass.attribute('class').value.sub(/[-_]/, " ").eql?(k.to_s.sub(/[-_]/, " "))
-	 					# binding.pry
-	 				 info[k] = klass.text
+	 		link.css('.vitals-container').search('[class^="profile"]').each do |klass|info.each do |k,v|
+	 				if info[k].empty? && klass.attribute('class').value.sub(/[-_]/, " ").eql?(k.to_s.sub(/[-_]/, " "))info[k] = klass.text
 	 				end
 	 			end
 	 		end
-	 		link.css('.details-container').search('[class^="bio"]').each do |klass|
-	 			# binding.pry
-	 			info.each do |k,v|
-	 				# binding.pry
-	 				if info[k].empty? && klass.attribute('class').value.slice(k.to_s).eql?(k.to_s)
-	 					# binding.pry
-	 				 info[k] = klass.css('p').text
+	 		link.css('.details-container').search('[class^="bio"]').each do |klass|info.each do |k,v|
+	 				if info[k].empty? && klass.attribute('class').value.slice(k.to_s).eql?(k.to_s)info[k] = klass.css('p').text
 	 				end
 	 			end
 	 		end
 	 	end
-	 	# binding.pry
 	 	info.delete_if {|k, v| v == ""}
 	end
 
