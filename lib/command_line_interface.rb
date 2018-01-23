@@ -4,7 +4,7 @@ require 'nokogiri'
 require 'colorize'
 
 class CommandLineInteface
-  BASE_PATH = "./fixtures/student-site/"
+  BASE_URL = "http://127.0.0.1:4000/"
 
   def run
     make_students
@@ -13,13 +13,13 @@ class CommandLineInteface
   end
 
   def make_students
-    students_array = Scraper.scrape_index_page(BASE_PATH + 'index.html')
+    students_array = Scraper.scrape_index_page(BASE_URL)
     Student.create_from_collection(students_array)
   end
 
   def add_attributes_to_students
     Student.all.each do |student|
-      attributes = Scraper.scrape_profile_page(BASE_PATH + student.profile_url)
+      attributes = Scraper.scrape_profile_page(student.profile_url)
       student.add_student_attributes(attributes)
     end
   end
