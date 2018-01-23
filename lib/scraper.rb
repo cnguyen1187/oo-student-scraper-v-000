@@ -1,32 +1,67 @@
 require 'open-uri'
-require 'nokogiri'
 require 'pry'
 
+# attr_accessor :linkedin, :github, :blog, :profile_quote, :bio
+
 class Scraper
-  
+
   def self.scrape_index_page(index_url)
-    students = []
-    Nokogiri::HTML(open(index_url)).css('.student-card').each {|student| students << {name: student.css('.student-name').text, location: student.css('.student-location').text, profile_url: "#{index_url}#{student.css('a')[0]['href']}" }}
-    students
+		url = Nokogiri::HTML(open(index_url))
+		url.css('.roster-body-wrapper .roster-cards-container .student-card').collect do |student|
+			{
+				name: student.css('a .card-text-container h4.student-name').text,
+				location: student.css('a .card-text-container p.student-location').text,
+				profile_url: student.css('a').attribute('href').value
+			}
+		end
   end
 
   def self.scrape_profile_page(profile_url)
-    doc = Nokogiri::HTML(open(profile_url))
-    details = {}
-    doc.css('.social-icon-container a').each do |link|
-      if link['href'].include?('twitter')
-        details[:twitter] = link['href']
-      elsif link['href'].include?('linkedin')
-        details[:linkedin] = link['href']
-      elsif link['href'].include?('github')
-        details[:github] = link['href']
-      else
-        details[:blog] = link['href']
-      end
-    end
-    details[:profile_quote] = doc.css('.profile-quote').text.strip
-    details[:bio] = doc.css('.description-holder p').text.strip
-    details
-  end
+  	info = {twitter: "",linkedin: "", github: "", blog: "", profile_quote: "", bio: ""}
+
+  	url = Nokogiri::HTML(open(profile_url))
+  	#collect all social links
+  	links = url.css('.main-wrapper')
+  	links.each do |link|
+  		# binding.pry
+  		link.css('.vitals-container').search('a').each do |site|
+  			# binding.pry
+  			info.each do |k, v|
+  				# binding.pry
+  				if site.attribute('href').value.slice(k.to_s).eql?(k.to_s)
+	 					info[k] = site.attribute('href').value
+
+	 				elsif k.eql?(:blog) && info.none?{|a,b| site.attribute('href').value.slice(a.to_s).eql?(a.to_s)} && site.attribute('href').value.include?("http://")
+	 				# 	# !info.values.include?(site.attribute('href').value) && !site.attribute('href').value.slice(k.to_s).eql?(k.to_s)
+	 					info[k] = site.attribute('href').value
+	 				end
+	 			end
+	 		end
+
+	 		link.css('.vitals-container').search('[class^="profile"]').each do |klass|
+	 			# binding.pry
+	 			info.each do |k,v|
+	 				# binding.pry
+	 				if info[k].empty? && klass.attribute('class').value.sub(/[-_]/, " ").eql?(k.to_s.sub(/[-_]/, " "))
+	 					# if info[k].empty? && klass.attribute('class').value.sub(/[-_]/, " ").eql?(k.to_s.sub(/[-_]/, " "))
+	 					# binding.pry
+	 				 info[k] = klass.text
+	 				end
+	 			end
+	 		end
+	 		link.css('.details-container').search('[class^="bio"]').each do |klass|
+	 			# binding.pry
+	 			info.each do |k,v|
+	 				# binding.pry
+	 				if info[k].empty? && klass.attribute('class').value.slice(k.to_s).eql?(k.to_s)
+	 					# binding.pry
+	 				 info[k] = klass.css('p').text
+	 				end
+	 			end
+	 		end
+	 	end
+	 	# binding.pry
+	 	info.delete_if {|k, v| v == ""}
+	end
 
 end
